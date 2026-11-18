@@ -16,6 +16,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:5137
+# The API binds to $PORT (injected by the hosting platform) and defaults to 5137.
+ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 5137
 ENTRYPOINT ["dotnet", "Finlay.PharmaVigilance.API.dll"]

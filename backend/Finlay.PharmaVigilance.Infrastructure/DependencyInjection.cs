@@ -109,6 +109,10 @@ public static class DependencyInjection
         services.AddHttpClient<IMessageService, WhatsAppService>();
 
 
+        // Messaging transport. RabbitMQ is the default. Set MESSAGING_TRANSPORT=InMemory to run
+        // without a broker (single instance deployments such as free-tier pilots).
+        var useInMemoryTransport = string.Equals(
+            configuration["MESSAGING_TRANSPORT"], "InMemory", StringComparison.OrdinalIgnoreCase);
         var rabbitMqUrl = configuration["RABBITMQ_URL"] ?? "amqp://guest:guest@localhost:5672";
         services.AddMassTransit(x =>
         {
@@ -118,11 +122,18 @@ public static class DependencyInjection
             x.AddConsumer<SectionReportAlertConsumer>();
             x.AddConsumer<RegisterUserConsumer>();
 
-            x.UsingRabbitMq((context, cfg) =>
+            if (useInMemoryTransport)
             {
-                cfg.Host(rabbitMqUrl);
-                cfg.ConfigureEndpoints(context);
-            });
+                x.UsingInMemory((context, cfg) => cfg.ConfigureEndpoints(context));
+            }
+            else
+            {
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(rabbitMqUrl);
+                    cfg.ConfigureEndpoints(context);
+                });
+            }
         });
 
 

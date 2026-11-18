@@ -135,6 +135,13 @@ Case classification and follow-up
 
 
 
+## 🚀 Deployment (pilot)
+
+Free-tier pilot: React frontend on Cloudflare (Workers static assets) and the .NET API on Render with a managed MySQL.
+Step-by-step guide in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+---
+
 ## 📊 Testing & Quality
 
 The platform has been tested across multiple dimensions:

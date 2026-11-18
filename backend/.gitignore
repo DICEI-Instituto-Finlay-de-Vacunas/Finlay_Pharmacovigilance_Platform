@@ -28,10 +28,12 @@ packages/
 Thumbs.db
 .DS_Store
 
-# EF Core Migrations
-Migrations/
+# EF Core migrations ARE tracked: the deployed API applies them at startup (Database__AutoMigrate=true)
 .env
 
+# Ignore local JSON files, but keep the shared (secret-free) configuration
 *.json
+!appsettings.json
+!appsettings.Production.json
 
 *.http

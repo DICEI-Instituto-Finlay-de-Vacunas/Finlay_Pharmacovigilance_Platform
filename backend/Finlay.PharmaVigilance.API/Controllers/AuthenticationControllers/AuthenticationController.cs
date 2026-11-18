@@ -15,13 +15,21 @@ public class AuthenticationController : ControllerBase
 {
     private readonly IIdentityService _identityService;
     private readonly ICaptchaService _captchaService;
+    private readonly bool _adminRegistrationEnabled;
 
     public AuthenticationController(
         IIdentityService identityService,
-        ICaptchaService captchaService)
+        ICaptchaService captchaService,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         _identityService = identityService;
         _captchaService = captchaService;
+
+        // This endpoint is anonymous (it is how the first administrator is bootstrapped), so outside
+        // Development it stays closed unless Setup__AllowAdminRegistration=true is set explicitly.
+        _adminRegistrationEnabled =
+            configuration.GetValue<bool?>("Setup:AllowAdminRegistration") ?? environment.IsDevelopment();
     }
 
     [HttpPost]
@@ -71,6 +79,9 @@ public class AuthenticationController : ControllerBase
     [Route("register/admins")]
     public async Task<IActionResult> RegisterAdmin(RegisterUserDto registerAdminDto)
     {
+        if (!_adminRegistrationEnabled)
+            return NotFound();
+
         var result = await _identityService.RegisterAdminAsync(registerAdminDto);
         return Ok(new
         {

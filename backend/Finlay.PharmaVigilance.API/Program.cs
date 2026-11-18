@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 
-services.AddPresentation();
+services.AddPresentation(builder.Configuration);
 services.AddAplication(builder.Configuration);
 services.AddInfrastructure(builder.Configuration);
 
@@ -46,10 +46,22 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 
-//configuration so that API listens on all network interfaces
+// The API listens on all network interfaces. The port comes from the PORT variable
+// (injected by most hosting platforms) and defaults to 5137 for local development.
+var port = int.TryParse(Environment.GetEnvironmentVariable("PORT"), out var parsedPort) ? parsedPort : 5137;
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Listen(System.Net.IPAddress.Any, 5137);  // Escucha en todas las interfaces en el puerto 5217
+    options.Listen(System.Net.IPAddress.Any, port);
+});
+
+// Behind a reverse proxy (Render, Cloudflare, ...) the real client IP and scheme arrive in X-Forwarded-* headers.
+builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+        Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 
@@ -68,20 +80,35 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    await DatabaseInitializer.InitializeAsync(app.Services);
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Apply EF Core migrations at startup in Development, or in any environment when Database__AutoMigrate=true.
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Database:AutoMigrate"))
+{
+    await DatabaseInitializer.InitializeAsync(app.Services);
+}
+
+app.UseForwardedHeaders();
 
 app.UseCors("Frontend");
 //app.UseCors("LocalhostPolicy");
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseHttpsRedirection();
+
+// Opt-in: TLS is normally terminated by the hosting platform, so the redirect is off unless requested.
+if (app.Configuration.GetValue<bool>("Https:Redirect"))
+{
+    app.UseHttpsRedirection();
+}
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Lightweight liveness probe for hosting platforms (does not touch the database).
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
 
 
 app.Run();

@@ -14,7 +14,7 @@ public static class DependencyInjection
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to which services are added.</param>
     /// <returns>The modified <see cref="IServiceCollection"/> with the presentation layer services registered.</returns>
-    public static IServiceCollection AddPresentation(this IServiceCollection services)
+    public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
     {
         // Add controllers to handle API requests
         services.AddControllers()
@@ -29,14 +29,25 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
+        // Allowed browser origins. Extra origins (e.g. the Cloudflare frontend URL) are provided
+        // through configuration: Cors__AllowedOrigins="https://a.example.com,https://b.example.com"
+        var allowedOrigins = new List<string>
+        {
+            "http://localhost:5173",
+            "https://frontend-five-sepia-10.vercel.app"
+        };
+
+        allowedOrigins.AddRange(
+            (configuration["Cors:AllowedOrigins"] ?? string.Empty)
+                .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(o => o.TrimEnd('/')));
+
         services.AddCors(options =>
         {
             options.AddPolicy("Frontend", builder =>
             {
                 builder
-                    .WithOrigins(
-                        "http://localhost:5173",
-                        "https://frontend-five-sepia-10.vercel.app")
+                    .WithOrigins(allowedOrigins.Distinct().ToArray())
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

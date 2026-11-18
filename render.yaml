@@ -1,0 +1,47 @@
+# Render Blueprint: free-tier backend for the pilot (frontend lives on Cloudflare).
+# Render dashboard -> New -> Blueprint -> select this repository.
+services:
+  - type: web
+    name: finlay-pharmacovigilance-api
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # No RabbitMQ on the free tier: events are handled in-process (single instance).
+      - key: MESSAGING_TRANSPORT
+        value: InMemory
+      # Applies the EF Core migrations on every start.
+      - key: Database__AutoMigrate
+        value: "true"
+      # Keep "false" except while creating the first administrator (see docs/DEPLOYMENT.md).
+      - key: Setup__AllowAdminRegistration
+        value: "false"
+      # Origin of the Cloudflare frontend, e.g. https://finlay-pharmacovigilance.<subdomain>.workers.dev
+      - key: Cors__AllowedOrigins
+        sync: false
+      - key: ConnectionStrings__AppDbConnectionString
+        sync: false
+      - key: JwtSettings__Secret
+        generateValue: true
+      # Generate with: openssl rand -base64 32   (two different values)
+      - key: Encryption__AesKey
+        sync: false
+      - key: Encryption__BlindIndexKey
+        sync: false
+      - key: FriendlyCaptcha__ApiKey
+        sync: false
+      - key: FriendlyCaptcha__SiteKey
+        sync: false
+      - key: Email__EmailJS__ServiceId
+        sync: false
+      - key: Email__EmailJS__UserId
+        sync: false
+      - key: Email__EmailJS__AccessToken
+        sync: false
+      - key: Email__EmailJS__HtmlTemplateId
+        sync: false

@@ -28,6 +28,7 @@ Workers Paid (5 USD/mes)**. Para mantener coste 0, el frontend va en Cloudflare 
 | `GET /health` | Health check para el host. |
 | `X-Forwarded-*` + redirección HTTPS opcional (`Https__Redirect`) | La API va detrás de un proxy que ya termina TLS. |
 | `POST /api/Authentication/register/admins` cerrado fuera de `Development` salvo `Setup__AllowAdminRegistration=true` | El endpoint era anónimo: cualquiera podía crearse un administrador en un despliegue público. |
+| Cookie `refreshToken` con `SameSite=None; Secure` fuera de `Development` (`Auth__CrossSiteCookies` lo fuerza) | Frontend (`*.workers.dev`) y API (`*.onrender.com`) son sitios distintos: con `SameSite=Lax` el navegador no enviaba la cookie y la sesión no se podía renovar. |
 
 Probado en local: build, arranque en `Production`, migración automática sobre MySQL 8 (29 tablas), roles, alta de admin,
 login, CORS (origen configurado permitido y otros rechazados), cierre del registro de admins, y el frontend sobre el runtime
@@ -107,5 +108,13 @@ CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... npm run deploy
 - **Archivos de log** (`logs/`) viven en disco efímero; usar los logs de Render.
 - **Límites de peticiones** (`RateLimitingMiddleware`) están configurados con valores prácticamente ilimitados; conviene
   ajustarlos antes de exponer el sistema más allá del piloto.
+- **Catálogos vacíos**: la base arranca sin vacunas, lotes, centros ni síntomas. Lo recomendado es crearlos desde el panel de
+  administrador. El cliente `finlay_client/` **no** lee argumentos: toma la URL de `finlay_client/.env`
+  (`API_BASE_URL=https://<servicio>.onrender.com`, sin `/api`; si falta, usa un Railway antiguo), ejecuta solo los seeds no
+  comentados en `Program.cs` e inicia sesión con administradores de prueba con contraseña fija en el código. No usarlo contra
+  un despliegue público sin borrar después esos usuarios.
+- **Cookies de terceros**: la renovación de sesión usa una cookie cross-site. Safari (y cualquier navegador que bloquee cookies de
+  terceros) no la envía, así que allí la sesión caduca con el access token (60 min). Se resuelve sirviendo frontend y API bajo un
+  mismo dominio propio (p. ej. `app.midominio.org` y `api.midominio.org`).
 - **WhatsApp** (`WhatsApp__*`) es opcional y no está en el blueprint; configurarlo solo si se usa.
 - Los planes gratuitos pueden cambiar o caducar (la BD gratuita en particular): revisar las condiciones del proveedor elegido.

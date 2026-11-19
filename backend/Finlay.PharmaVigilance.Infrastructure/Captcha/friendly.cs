@@ -52,7 +52,14 @@ public class FriendlyCaptchaService : ICaptchaService
 
             var result = JsonSerializer.Deserialize<FriendlyCaptchaResponse>(json);
 
-            return result?.success == true;
+            if (result?.success != true)
+            {
+                // The body only carries an error code (no secrets, no personal data).
+                Console.WriteLine($"Friendly Captcha rejected the token: {json}");
+                return false;
+            }
+
+            return true;
         }
         catch (Exception ex)
         {

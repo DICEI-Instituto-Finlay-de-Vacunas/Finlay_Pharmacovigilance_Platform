@@ -1,120 +1,137 @@
-# Despliegue del piloto (coste 0)
+# Despliegue del piloto (coste 0, sin tarjeta)
 
-Arquitectura del piloto:
+Arquitectura del piloto tal como está desplegada:
 
 ```text
-Navegador ──► Cloudflare (Workers + static assets)   frontend React/Vite, gratis
+Navegador ──► Cloudflare Workers (static assets)     frontend React/Vite        gratis
      │
-     └──────► Render (Docker, plan free)             API ASP.NET Core 8, gratis
+     └──────► Railway (Docker, plan Trial → Free)    API ASP.NET Core 8         sin tarjeta
                     │
-                    └──► MySQL 8 gestionado (plan free)
+                    ├──► TiDB Cloud Starter            base de datos compatible con MySQL  gratis
+                    ├──► Friendly Captcha (v2)         captcha del formulario público      gratis (no comercial)
+                    └──► EmailJS                       envío de correos                    gratis (200/mes)
 ```
 
-## Por qué el backend no corre en Cloudflare
+## Por qué estos proveedores
 
-La API es .NET 8 con MySQL. Los Workers gratuitos no ejecutan .NET y **Cloudflare Containers requiere el plan
-Workers Paid (5 USD/mes)**. Para mantener coste 0, el frontend va en Cloudflare y la API en un host Docker gratuito
-(Render). Si más adelante se acepta pagar 5 USD/mes, la API puede moverse a Cloudflare Containers sin cambios de código.
+Probado en noviembre de 2026, buscando planes gratuitos **sin tarjeta**:
+
+| Necesidad | Elegido | Descartados y por qué |
+| --- | --- | --- |
+| API .NET en Docker | **Railway** | Render, Northflank y Koyeb piden tarjeta incluso en el plan gratuito. Hugging Face Spaces solo permite salida por los puertos 80/443 (TiDB usa el 4000). Back4App y Choreo no dejaban registrarse. |
+| MySQL | **TiDB Cloud Starter** (5 GiB) | Aiven ya no tiene MySQL gratuito (solo PostgreSQL/Valkey). |
+| Frontend | **Cloudflare Workers** | — |
+
+Cloudflare Containers podría alojar también la API, pero requiere el plan Workers Paid (5 USD/mes).
+
+**Railway:** la cuenta empieza con 30 días / 5 USD de prueba y luego pasa al plan Free con 1 USD de crédito al mes.
+Con *Serverless* activado el contenedor se duerme sin tráfico y solo consume mientras está despierto; si un mes se agota
+el crédito, el servicio se para hasta el mes siguiente. La primera petición tras dormir tarda hasta ~1 minuto (por eso el
+frontend usa `VITE_API_TIMEOUT=60000`).
 
 ## Cambios de código que hacen posible este despliegue
 
 | Cambio | Motivo |
 | --- | --- |
-| `Infrastructure/Migrations/` ahora versionada (antes estaba en `.gitignore`) | Sin migraciones, una base de datos vacía nunca recibía el esquema. |
-| `Database__AutoMigrate=true` | Aplica las migraciones al arrancar en cualquier entorno (antes solo en `Development`). |
-| `MESSAGING_TRANSPORT=InMemory` | RabbitMQ no tiene plan gratuito autoalojable aquí; los eventos (emails/alertas) se procesan en el mismo proceso. |
-| La API escucha en `$PORT` (por defecto 5137) | Los hosts inyectan el puerto; antes estaba fijo en 5137. |
-| `Cors__AllowedOrigins` | Permite añadir el dominio de Cloudflare sin recompilar. |
-| `GET /health` | Health check para el host. |
+| `Infrastructure/Migrations/` versionada | Sin migraciones, una base vacía nunca recibía el esquema. |
+| Columnas GUID con `ascii_bin` en la migración inicial | TiDB rechaza `ascii_general_ci`, que Pomelo usa por defecto; `ascii_bin` vale en MySQL 8 y en TiDB. |
+| `Database__AutoMigrate=true` | Aplica las migraciones al arrancar en cualquier entorno. |
+| `MESSAGING_TRANSPORT=InMemory` | Sin RabbitMQ: los eventos se procesan en el mismo proceso (una sola instancia). |
+| La API escucha en `$PORT` (por defecto 5137) | Railway inyecta el puerto. |
+| `Cors__AllowedOrigins` | Añade el dominio de Cloudflare sin recompilar. |
+| `GET /health` | Health check del host. |
 | `X-Forwarded-*` + redirección HTTPS opcional (`Https__Redirect`) | La API va detrás de un proxy que ya termina TLS. |
-| `POST /api/Authentication/register/admins` cerrado fuera de `Development` salvo `Setup__AllowAdminRegistration=true` | El endpoint era anónimo: cualquiera podía crearse un administrador en un despliegue público. |
-| Cookie `refreshToken` con `SameSite=None; Secure` fuera de `Development` (`Auth__CrossSiteCookies` lo fuerza) | Frontend (`*.workers.dev`) y API (`*.onrender.com`) son sitios distintos: con `SameSite=Lax` el navegador no enviaba la cookie y la sesión no se podía renovar. |
+| `register/admins` cerrado salvo `Setup__AllowAdminRegistration=true` | El endpoint era anónimo. |
+| Cookie `refreshToken` con `SameSite=None; Secure` fuera de `Development` (`Auth__CrossSiteCookies`) | Frontend y API están en sitios distintos; con `Lax` la sesión no se renovaba. |
+| `Frontend__BaseUrl` | El enlace del correo de activación apuntaba fijo a `http://localhost:5173`. |
+| Formulario de reporte: `finishDate` vacío se envía como `null` | Con `""` la API rechazaba todo reporte sin fecha de fin del evento. |
+| Formulario de reporte: errores reales en vez de "captcha inválido" | Cualquier 400 se mostraba como fallo de captcha. |
+| Captcha verificado en el servidor (reporte público, consulta y login) | Estaba comentado: el widget se mostraba pero cualquier bot podía enviar reportes o probar contraseñas. |
 
-Probado en local: build, arranque en `Production`, migración automática sobre MySQL 8 (29 tablas), roles, alta de admin,
-login, CORS (origen configurado permitido y otros rechazados), cierre del registro de admins, y el frontend sobre el runtime
-de Workers (`wrangler dev`) con fallback de SPA.
+## 1. Base de datos: TiDB Cloud Starter
 
-## 1. Base de datos MySQL gratuita
+1. tidbcloud.com → **Create Resource → Starter**, compatibilidad **MySQL**, límite de gasto **0 USD**.
+2. **Connect** → *Public Endpoint* → *Generate Password* (solo se muestra una vez).
+3. En el SQL Editor:
+   ```sql
+   SET GLOBAL default_collation_for_utf8mb4 = 'utf8mb4_0900_ai_ci';
+   CREATE DATABASE finlay CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+   ```
+   Sin el `SET GLOBAL`, TiDB usa `utf8mb4_bin` (distingue mayúsculas) en vez del comportamiento de MySQL 8.
+4. Cadena de conexión:
+   ```text
+   server=gateway01.<region>.prod.aws.tidbcloud.com;port=4000;database=finlay;uid=<usuario>.root;pwd=<clave>;SslMode=VerifyFull;
+   ```
+   La regla de red por defecto (`Allow_all_public_connections`) es necesaria: Railway no tiene IP fija.
 
-Cualquier MySQL 8 accesible desde Internet con TLS sirve. Opciones con plan gratuito: Aiven for MySQL (free) o
-TiDB Cloud Serverless (compatible con MySQL). Cadena de conexión (Pomelo):
+## 2. Friendly Captcha y EmailJS
 
-```text
-server=HOST;port=PUERTO;database=finlay;uid=USUARIO;pwd=CLAVE;SslMode=Required;
-```
+- **Friendly Captcha:** crear una aplicación **v2**, endpoint *Global*. Añadir el dominio de Cloudflare (y `localhost`) en
+  *Domain List* y activar *Only allow requests from the Domain List*. Crear una API key con permiso *Captcha Siteverify*.
+- **EmailJS:** servicio de correo (p. ej. Gmail) y **una sola plantilla** con *To Email* `{{email}}` y contenido
+  `{{{body}}}` (tres llaves: el backend envía el HTML ya armado). Activar *Do not save private data* (los correos llevan
+  datos de salud) y, en *Account → Security*, **Allow EmailJS API for non-browser applications**.
 
-> Solo se ha validado contra MySQL 8 local. Si se usa TiDB y la migración inicial falla, avisar para ajustarla.
+## 3. API en Railway
 
-## 2. API en Render
+1. railway.com → *New project → GitHub Repository* → el repositorio. Railway lee `render.yaml` e importa varias variables,
+   la carpeta `backend` y el health check.
+2. *Settings:* Root Directory `backend`, Healthcheck `/health`, **Serverless** activado, Watch Paths `/backend/**`.
+3. *Variables:*
 
-1. Render → **New → Blueprint** → elegir este repositorio (usa `render.yaml`).
-2. Completar los valores marcados como secretos:
-   - `ConnectionStrings__AppDbConnectionString`: la cadena del paso 1.
-   - `Encryption__AesKey` y `Encryption__BlindIndexKey`: dos valores distintos de `openssl rand -base64 32`.
-     **No cambiarlos después**: los datos personales cifrados dejarían de poder leerse.
-   - `FriendlyCaptcha__ApiKey` y `FriendlyCaptcha__SiteKey`: cuenta gratuita de Friendly Captcha.
-   - `Email__EmailJS__*`: credenciales de EmailJS (notificaciones por correo).
-   - `Cors__AllowedOrigins`: URL del frontend, p. ej. `https://finlay-pharmacovigilance.<subdominio>.workers.dev`.
-3. Comprobar `https://<servicio>.onrender.com/health` → `{"status":"healthy"}`.
-4. **Crear el primer administrador** (una sola vez):
-   - Poner `Setup__AllowAdminRegistration=true` y redesplegar.
-   - `POST https://<servicio>.onrender.com/api/Authentication/register/admins` con
-     `{"UserName":"...","Email":"...","Password":"...","PhoneNumber":"..."}`.
-   - Volver a poner `Setup__AllowAdminRegistration=false` y redesplegar.
-   - El resto de usuarios se crean desde la aplicación con ese administrador.
+   | Variable | Valor |
+   | --- | --- |
+   | `ASPNETCORE_ENVIRONMENT` | `Production` |
+   | `MESSAGING_TRANSPORT` | `InMemory` |
+   | `Database__AutoMigrate` | `true` |
+   | `Setup__AllowAdminRegistration` | `false` |
+   | `ConnectionStrings__AppDbConnectionString` | cadena del paso 1 (secreto) |
+   | `JwtSettings__Secret` | aleatorio, p. ej. `openssl rand -base64 48` (secreto) |
+   | `Encryption__AesKey`, `Encryption__BlindIndexKey` | dos `openssl rand -base64 32` distintos (secreto, **no cambiar nunca**) |
+   | `FriendlyCaptcha__SiteKey` / `FriendlyCaptcha__ApiKey` | site key (pública) / API key (secreto) |
+   | `Email__EmailJS__ServiceId`, `UserId`, `HtmlTemplateId` | IDs de EmailJS (UserId = public key) |
+   | `Email__EmailJS__AccessToken` | private key de EmailJS (secreto) |
+   | `Cors__AllowedOrigins` | URL del frontend, sin barra final |
+   | `Frontend__BaseUrl` | URL del frontend (enlaces de los correos) |
+   | `DOTNET_gcServer` | `0` (menos RAM, menos crédito consumido) |
 
-El servicio gratuito de Render se duerme tras ~15 min sin tráfico; la primera petición tarda hasta ~1 minuto (por eso el
-frontend usa `VITE_API_TIMEOUT=60000`).
+4. Comprobar `https://<servicio>.up.railway.app/health` → `{"status":"healthy"}`.
 
-## 3. Frontend en Cloudflare
+## 4. Frontend en Cloudflare
 
-Variables de build (`frontend/.env.production` trae valores por defecto):
+Workers & Pages → *Create → Import a repository*: nombre `finlay-pharmacovigilance` (igual que `wrangler.jsonc`), Root
+directory `frontend`, build `npm ci && npm run build`, deploy `npx wrangler deploy`. `frontend/.env.production` ya trae la
+URL de la API y la site key del captcha, así que no hacen falta variables de build.
 
-| Variable | Valor |
-| --- | --- |
-| `VITE_API_BASE_URL` | `https://<servicio>.onrender.com/api` (debe terminar en `/api`) |
-| `VITE_FRIENDLYCAPTCHA_SITE_KEY` | Site key pública de Friendly Captcha |
+## 5. Puesta en marcha
 
-### Opción A — Integración Git del dashboard (la más simple)
+1. **Primer administrador:** `Setup__AllowAdminRegistration=true`, desplegar, y:
+   ```bash
+   curl -X POST https://<api>/api/Authentication/register/admins -H "Content-Type: application/json" \
+     -d '{"UserName":"admin","Email":"...","Password":"...","PhoneNumber":"..."}'
+   ```
+   Volver a `false` y desplegar. Con datos válidos, el endpoint debe responder 404.
+2. **Catálogos:** síntomas, vacunas y lotes desde *Gestionar Catálogo*. Los **centros de vacunación no tienen pantalla**: se
+   crean con `POST /api/VaccinationCenter/register` (rol Admin).
+3. **Jefes de sección:** cada reporte se asigna al jefe de sección del **municipio del paciente**. Sin uno en ese municipio,
+   el reporte se rechaza con *No SectionResponsible found*.
 
-Cloudflare → **Workers & Pages → Create → Import a repository** → este repositorio, y configurar:
+El cliente `finlay_client/` puede cargar datos de ejemplo, pero no lee argumentos: toma la URL de `finlay_client/.env`
+(`API_BASE_URL=https://<api>`, sin `/api`), ejecuta solo los seeds no comentados en `Program.cs` e inicia sesión con
+administradores de prueba con contraseña fija en el código. No usarlo contra un despliegue público sin borrar esos usuarios.
 
-- Root directory: `frontend`
-- Build command: `npm ci && npm run build`
-- Deploy command: `npx wrangler deploy`
-- Variables de build: `VITE_API_BASE_URL`, `VITE_FRIENDLYCAPTCHA_SITE_KEY`
+## 6. Limitaciones conocidas del piloto
 
-Cada push a `main` redespliega. El plan Free incluye peticiones de assets estáticos ilimitadas.
-
-### Opción B — GitHub Actions
-
-Crear en GitHub los secretos `CLOUDFLARE_API_TOKEN` (permiso *Workers Scripts: Edit*) y `CLOUDFLARE_ACCOUNT_ID`, y
-opcionalmente las variables `VITE_API_BASE_URL` / `VITE_FRIENDLYCAPTCHA_SITE_KEY`. El workflow
-`.github/workflows/deploy-frontend.yml` despliega en cada push a `main` que toque `frontend/` (si faltan los secretos, se omite).
-
-### Opción C — Manual
-
-```bash
-cd frontend
-npm ci
-CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... npm run deploy
-```
-
-## 4. Limitaciones conocidas del piloto
-
-- **Mensajería en memoria**: si Render reinicia el servicio, los eventos pendientes (correos/alertas) se pierden. Aceptable
-  para un piloto; para producción, volver a RabbitMQ (`MESSAGING_TRANSPORT` sin definir y `RABBITMQ_URL`).
-- **Una sola instancia**: la mensajería en memoria no es compartida entre instancias.
-- **Archivos de log** (`logs/`) viven en disco efímero; usar los logs de Render.
-- **Límites de peticiones** (`RateLimitingMiddleware`) están configurados con valores prácticamente ilimitados; conviene
-  ajustarlos antes de exponer el sistema más allá del piloto.
-- **Catálogos vacíos**: la base arranca sin vacunas, lotes, centros ni síntomas. Lo recomendado es crearlos desde el panel de
-  administrador. El cliente `finlay_client/` **no** lee argumentos: toma la URL de `finlay_client/.env`
-  (`API_BASE_URL=https://<servicio>.onrender.com`, sin `/api`; si falta, usa un Railway antiguo), ejecuta solo los seeds no
-  comentados en `Program.cs` e inicia sesión con administradores de prueba con contraseña fija en el código. No usarlo contra
-  un despliegue público sin borrar después esos usuarios.
-- **Cookies de terceros**: la renovación de sesión usa una cookie cross-site. Safari (y cualquier navegador que bloquee cookies de
-  terceros) no la envía, así que allí la sesión caduca con el access token (60 min). Se resuelve sirviendo frontend y API bajo un
-  mismo dominio propio (p. ej. `app.midominio.org` y `api.midominio.org`).
-- **WhatsApp** (`WhatsApp__*`) es opcional y no está en el blueprint; configurarlo solo si se usa.
-- Los planes gratuitos pueden cambiar o caducar (la BD gratuita en particular): revisar las condiciones del proveedor elegido.
+- **Captcha:** el servidor verifica el token en el reporte público, la consulta de reporte y el login. Los administradores y
+  médicos revisores autenticados envían reportes sin captcha. Si Friendly Captcha no responde, nadie puede iniciar sesión.
+- **Correos desactivados en el código:** la confirmación del reporte, la asignación al revisor y el aviso al reportante están
+  comentados en sus consumers. Solo se envía el correo de activación de los médicos revisores. Crear un jefe de sección no
+  envía correo.
+- **Datos personales en los logs:** `EmailJsService` escribe en consola el HTML completo de cada correo.
+- **Mensajería en memoria:** si el servicio se reinicia, los eventos pendientes se pierden. Una sola instancia.
+- **Cookies de terceros:** Safari (y navegadores que bloquean cookies de terceros) no envía la cookie de renovación; allí la
+  sesión caduca con el access token (60 min). Se resuelve con un dominio propio común para frontend y API.
+- **Logs** (`logs/`) en disco efímero: usar los de Railway.
+- **Límites de peticiones** (`RateLimitingMiddleware`) prácticamente ilimitados: ajustarlos antes de abrir el sistema.
+- **WhatsApp** (`WhatsApp__*`) opcional; no configurado.
+- Los planes gratuitos cambian: revisar las condiciones de cada proveedor.

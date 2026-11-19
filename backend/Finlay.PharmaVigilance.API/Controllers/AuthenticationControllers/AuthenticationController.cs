@@ -54,10 +54,8 @@ public class AuthenticationController : ControllerBase
         if (loginDto == null)
             throw new ArgumentNullException(nameof(loginDto), "Login data is required.");
 
-        // var isValid = await _captchaService.VerifyToken(loginDto.Token);
-
-        // if (!isValid)
-        //     return BadRequest(new { success = false });
+        if (!await _captchaService.VerifyToken(loginDto.Token ?? string.Empty))
+            return BadRequest(new { success = false });
 
         var authResult = await _identityService.LoginUserAsync(loginDto);
 

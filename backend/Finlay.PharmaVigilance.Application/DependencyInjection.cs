@@ -75,10 +75,9 @@ public static class DependencyInjection
 
         services.AddScoped<IManufacturerQueryService, ManufacturerQueryService>();
 
-        // services.AddScoped<IMunicipalDashboardService, MunicipalDashboardService>();
-        //services.AddScoped<IAdminDashboardService, AdminDashboardService>();
-        services.AddScoped<IMunicipalDashboardService, MockMunicipalDashboardService>();
-        services.AddScoped<IAdminDashboardService, MockAdminDashboardService>();
+        // Dashboards read the real data. The Mock* services (hardcoded figures) stay in the code base for UI work only.
+        services.AddScoped<IMunicipalDashboardService, MunicipalDashboardService>();
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
 
         // services.AddScoped<IVaccinatedSubjectService, VaccinatedSubjectService>();

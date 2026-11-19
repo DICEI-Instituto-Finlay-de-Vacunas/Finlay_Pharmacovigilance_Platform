@@ -158,6 +158,8 @@ export const AdminDashboard = () => {
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
+  // MapLibre needs WebGL; without it (no GPU, remote desktops, some projectors) the constructor throws.
+  const [mapUnavailable, setMapUnavailable] = useState(false);
   const hoveredProvinceKeyRef = useRef<string | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
@@ -440,7 +442,9 @@ export const AdminDashboard = () => {
 
     const existingMap = mapInstance.current;
     if (!existingMap) {
-      const map = new maplibregl.Map({
+      let map: maplibregl.Map;
+      try {
+        map = new maplibregl.Map({
   container: mapContainer.current,
   style: 'https://demotiles.maplibre.org/style.json',
 
@@ -452,6 +456,11 @@ export const AdminDashboard = () => {
     [-73, 25.5]
   ]
 });
+      } catch (err) {
+        console.warn('Mapa no disponible (WebGL):', err);
+        setMapUnavailable(true);
+        return;
+      }
 
 // Ajuste inicial automático
 map.fitBounds(
@@ -676,7 +685,14 @@ map.fitBounds(
                 <CardContent>
                   <div className="grid gap-6 lg:grid-cols-3">
                     <div className="col-span-2 overflow-hidden rounded-xl border border-slate-200">
-                      <div ref={mapContainer} className="h-[520px] w-full" />
+                      {mapUnavailable ? (
+                        <div className="flex h-[520px] w-full items-center justify-center bg-slate-50 p-6 text-center text-sm text-slate-500">
+                          El mapa necesita aceleración gráfica (WebGL) y este navegador no la ofrece. Los datos por
+                          provincia siguen disponibles en el resto del panel.
+                        </div>
+                      ) : (
+                        <div ref={mapContainer} className="h-[520px] w-full" />
+                      )}
                     </div>
                     <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                       <div>

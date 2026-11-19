@@ -39,36 +39,42 @@ public class VaccinationRepository : GenericRepository<Vaccination>, IVaccinatio
 
     public async Task<IEnumerable<VaccineStatusDto>> GetVaccineDistributionAsync()
     {
-        var result = await _context.AefiReport
-    .SelectMany(r => r.Vaccinations)
-    .GroupBy(v => new
-    {
-        v.Lot.Vaccine.Id,
-        v.Lot.Vaccine.Name
-    })
-    .Select(vaccineGroup => new VaccineStatusDto
-    {
-        VaccineName = vaccineGroup.Key.Name,
+        // Two flat GROUP BY queries instead of one nested grouping: EF Core translates the nested
+        // version to OUTER APPLY, which MySQL/TiDB cannot run. The lots are attached in memory.
+        var vaccinations = _context.AefiReport.SelectMany(r => r.Vaccinations);
 
-        TotalReports = vaccineGroup
-            .Select(v => v.AefiReportId)
-            .Distinct()
-            .Count(),
-
-        Lots = vaccineGroup
-            .GroupBy(v => new { v.Lot.Id, v.Lot.LotNumber })
-            .Select(lotGroup => new LotsStatusDto
+        var perVaccine = await vaccinations
+            .GroupBy(v => new { v.Lot.Vaccine.Id, v.Lot.Vaccine.Name })
+            .Select(g => new
             {
-                LotNumber = lotGroup.Key.LotNumber,
-
-                TotalReports = lotGroup
-                    .Select(v => v.AefiReportId)
-                    .Distinct()
-                    .Count()
+                g.Key.Id,
+                g.Key.Name,
+                TotalReports = g.Select(v => v.AefiReportId).Distinct().Count()
             })
-            .ToList()
-    })
-    .ToListAsync();
+            .ToListAsync();
+
+        var perLot = await vaccinations
+            .GroupBy(v => new { VaccineId = v.Lot.Vaccine.Id, LotId = v.Lot.Id, v.Lot.LotNumber })
+            .Select(g => new
+            {
+                g.Key.VaccineId,
+                g.Key.LotNumber,
+                TotalReports = g.Select(v => v.AefiReportId).Distinct().Count()
+            })
+            .ToListAsync();
+
+        var result = perVaccine
+            .Select(v => new VaccineStatusDto
+            {
+                VaccineName = v.Name,
+                TotalReports = v.TotalReports,
+                Lots = perLot
+                    .Where(l => l.VaccineId == v.Id)
+                    .Select(l => new LotsStatusDto { LotNumber = l.LotNumber, TotalReports = l.TotalReports })
+                    .ToList()
+            })
+            .ToList();
+
         return result;
     }
 

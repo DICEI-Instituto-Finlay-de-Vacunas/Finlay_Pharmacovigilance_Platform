@@ -31,7 +31,7 @@ export interface Symptom {
 export interface AdverseEvent {
   id?: string;
   startDate: string;
-  finishDate?: string;
+  finishDate?: string | null;
   visitedDoctor: boolean;
   wentToEmergencyRoom: boolean;
   permanentDisability: boolean;

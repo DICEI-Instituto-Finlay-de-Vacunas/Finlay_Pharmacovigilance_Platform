@@ -122,6 +122,19 @@ type AdminReportData = {
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+// The API returns severity categories and percentages as raw values: show Spanish labels and one decimal.
+const SEVERITY_LABELS: Record<string, string> = {
+  'Visited Doctor': 'Consulta médica',
+  'Emergency Room': 'Atención de urgencia',
+  'Permanent Disability': 'Discapacidad permanente',
+  'Congenital Anomaly': 'Anomalía congénita',
+  'Hospitalized': 'Hospitalización',
+  'Death': 'Fallecimiento',
+  'No Complications': 'Sin complicaciones',
+};
+const formatPercent = (value: number) =>
+  `${(Math.round((Number.isFinite(value) ? value : 0) * 10) / 10).toLocaleString('es-ES')}%`;
+
 const normalizeProvinceName = (value: string) =>
   value
     .normalize('NFD')
@@ -765,8 +778,8 @@ map.fitBounds(
                       {severityChartData.map((entry, index) => (
                         <div key={entry.severityType} className="flex items-center gap-2 text-sm text-slate-700">
                           <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: severityColors[index % severityColors.length] }} />
-                          <span>{entry.severityType}</span>
-                          <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                          <span>{SEVERITY_LABELS[entry.severityType] ?? entry.severityType}</span>
+                          <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                         </div>
                       ))}
                     </div>
@@ -794,7 +807,7 @@ map.fitBounds(
                         <div key={entry.causality} className="flex items-center gap-2 text-sm text-slate-700">
                           <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: causalityColors[index % causalityColors.length] }} />
                           <span>{entry.causality}</span>
-                          <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                          <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                         </div>
                       ))}
                     </div>
@@ -822,7 +835,7 @@ map.fitBounds(
                         <div key={entry.significance} className="flex items-center gap-2 text-sm text-slate-700">
                           <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: significanceColors[index % significanceColors.length] }} />
                           <span>{entry.significance}</span>
-                          <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                          <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                         </div>
                       ))}
                     </div>
@@ -1141,7 +1154,7 @@ map.fitBounds(
                             <div key={entry.symptomName} className="flex items-center gap-2 text-sm text-slate-700">
                               <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: severityColors[index % severityColors.length] }} />
                               <span>{entry.symptomName}</span>
-                              <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                              <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                             </div>
                           ))}
                         </div>

@@ -39,11 +39,9 @@ public class ReportController : ControllerBase
         if (reportDto == null)
             throw new ArgumentNullException(nameof(reportDto), "Report data is required.");
 
-        // var isValid = await _captchaService.VerifyToken(reportDto.Token);
-
-        // if (!isValid)
-        //     return BadRequest(new { success = false });
-
+        var isStaff = User.IsInRole("Admin") || User.IsInRole("MedicalReviewer");
+        if (!isStaff && !await _captchaService.VerifyToken(reportDto.Token ?? string.Empty))
+            return BadRequest(new { success = false });
 
         var result = await _reportCommandService.CreatePublicReportAsync(reportDto, idempotencyKey);
 
@@ -68,10 +66,8 @@ public class ReportController : ControllerBase
             throw new ArgumentNullException(nameof(request), "Request Dto is required.");
 
 
-        // var isValid = await _captchaService.VerifyToken(request.Token);
-
-        // if (!isValid)
-        //     return BadRequest(new { success = false });
+        if (!await _captchaService.VerifyToken(request.Token))
+            return BadRequest(new { success = false });
 
 
         var result = await _reportQueryService.GetReportByNotificationNumber(request.NotificationNumber);

@@ -16,6 +16,7 @@ public class AuthenticationController : ControllerBase
     private readonly IIdentityService _identityService;
     private readonly ICaptchaService _captchaService;
     private readonly bool _adminRegistrationEnabled;
+    private readonly bool _crossSiteCookies;
 
     public AuthenticationController(
         IIdentityService identityService,
@@ -30,7 +31,20 @@ public class AuthenticationController : ControllerBase
         // Development it stays closed unless Setup__AllowAdminRegistration=true is set explicitly.
         _adminRegistrationEnabled =
             configuration.GetValue<bool?>("Setup:AllowAdminRegistration") ?? environment.IsDevelopment();
+
+        // Outside Development the frontend and the API live on different sites (e.g. *.workers.dev and
+        // *.onrender.com), so the refresh-token cookie must be SameSite=None; Secure to be sent at all.
+        _crossSiteCookies =
+            configuration.GetValue<bool?>("Auth:CrossSiteCookies") ?? !environment.IsDevelopment();
     }
+
+    private CookieOptions RefreshCookieOptions(DateTimeOffset? expires = null) => new()
+    {
+        HttpOnly = true,
+        Secure = _crossSiteCookies,
+        SameSite = _crossSiteCookies ? SameSiteMode.None : SameSiteMode.Lax,
+        Expires = expires
+    };
 
     [HttpPost]
     [Route("login")]
@@ -40,30 +54,13 @@ public class AuthenticationController : ControllerBase
         if (loginDto == null)
             throw new ArgumentNullException(nameof(loginDto), "Login data is required.");
 
-        // var isValid = await _captchaService.VerifyToken(loginDto.Token);
-
-        // if (!isValid)
-        //     return BadRequest(new { success = false });
+        if (!await _captchaService.VerifyToken(loginDto.Token ?? string.Empty))
+            return BadRequest(new { success = false });
 
         var authResult = await _identityService.LoginUserAsync(loginDto);
 
         Response.Cookies.Append("refreshToken", authResult.RefreshToken,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
-
-        // Response.Cookies.Append("refreshToken", authResult.RefreshToken,
-        //    new CookieOptions
-        //    {
-        //        HttpOnly = true,
-        //        Secure = true,
-        //        SameSite = SameSiteMode.None,
-        //        Expires = DateTime.UtcNow.AddDays(7)
-        //    });
+            RefreshCookieOptions(DateTimeOffset.UtcNow.AddDays(7)));
 
         return Ok(new
         {
@@ -100,8 +97,6 @@ public class AuthenticationController : ControllerBase
         return Ok();
     }
 
-
-
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken()
     {
@@ -121,34 +116,16 @@ public class AuthenticationController : ControllerBase
             });
         }
 
-
         var result = await _identityService.RefreshTokenAsync(refreshToken);
 
         Response.Cookies.Append("refreshToken", result.RefreshToken,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
-
-
-        // Response.Cookies.Append("refreshToken", result.RefreshToken,
-        // new CookieOptions
-        // {
-        //     HttpOnly = true,
-        //     Secure = true,
-        //     SameSite = SameSiteMode.None,
-        //     Expires = DateTime.UtcNow.AddDays(7)
-        // });
+            RefreshCookieOptions(DateTimeOffset.UtcNow.AddDays(7)));
 
         return Ok(new
         {
             accessToken = result.AccessToken
         });
     }
-
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
@@ -160,26 +137,12 @@ public class AuthenticationController : ControllerBase
             await _identityService.LogoutAsync(refreshToken);
         }
 
-        Response.Cookies.Delete("refreshToken", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax
-        });
-
-
-        // Response.Cookies.Delete("refreshToken", new CookieOptions
-        // {
-        //     HttpOnly = true,
-        //     Secure = true,
-        //     SameSite = SameSiteMode.None
-        // });
+        Response.Cookies.Delete("refreshToken", RefreshCookieOptions());
 
         return Ok(new
         {
             message = "Logged out successfully."
         });
     }
-
 
 }

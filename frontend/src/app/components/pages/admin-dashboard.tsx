@@ -122,6 +122,19 @@ type AdminReportData = {
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+// The API returns severity categories and percentages as raw values: show Spanish labels and one decimal.
+const SEVERITY_LABELS: Record<string, string> = {
+  'Visited Doctor': 'Consulta médica',
+  'Emergency Room': 'Atención de urgencia',
+  'Permanent Disability': 'Discapacidad permanente',
+  'Congenital Anomaly': 'Anomalía congénita',
+  'Hospitalized': 'Hospitalización',
+  'Death': 'Fallecimiento',
+  'No Complications': 'Sin complicaciones',
+};
+const formatPercent = (value: number) =>
+  `${(Math.round((Number.isFinite(value) ? value : 0) * 10) / 10).toLocaleString('es-ES')}%`;
+
 const normalizeProvinceName = (value: string) =>
   value
     .normalize('NFD')
@@ -158,6 +171,8 @@ export const AdminDashboard = () => {
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<maplibregl.Map | null>(null);
+  // MapLibre needs WebGL; without it (no GPU, remote desktops, some projectors) the constructor throws.
+  const [mapUnavailable, setMapUnavailable] = useState(false);
   const hoveredProvinceKeyRef = useRef<string | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
@@ -440,7 +455,9 @@ export const AdminDashboard = () => {
 
     const existingMap = mapInstance.current;
     if (!existingMap) {
-      const map = new maplibregl.Map({
+      let map: maplibregl.Map;
+      try {
+        map = new maplibregl.Map({
   container: mapContainer.current,
   style: 'https://demotiles.maplibre.org/style.json',
 
@@ -452,6 +469,11 @@ export const AdminDashboard = () => {
     [-73, 25.5]
   ]
 });
+      } catch (err) {
+        console.warn('Mapa no disponible (WebGL):', err);
+        setMapUnavailable(true);
+        return;
+      }
 
 // Ajuste inicial automático
 map.fitBounds(
@@ -676,7 +698,14 @@ map.fitBounds(
                 <CardContent>
                   <div className="grid gap-6 lg:grid-cols-3">
                     <div className="col-span-2 overflow-hidden rounded-xl border border-slate-200">
-                      <div ref={mapContainer} className="h-[520px] w-full" />
+                      {mapUnavailable ? (
+                        <div className="flex h-[520px] w-full items-center justify-center bg-slate-50 p-6 text-center text-sm text-slate-500">
+                          El mapa necesita aceleración gráfica (WebGL) y este navegador no la ofrece. Los datos por
+                          provincia siguen disponibles en el resto del panel.
+                        </div>
+                      ) : (
+                        <div ref={mapContainer} className="h-[520px] w-full" />
+                      )}
                     </div>
                     <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                       <div>
@@ -749,8 +778,8 @@ map.fitBounds(
                       {severityChartData.map((entry, index) => (
                         <div key={entry.severityType} className="flex items-center gap-2 text-sm text-slate-700">
                           <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: severityColors[index % severityColors.length] }} />
-                          <span>{entry.severityType}</span>
-                          <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                          <span>{SEVERITY_LABELS[entry.severityType] ?? entry.severityType}</span>
+                          <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                         </div>
                       ))}
                     </div>
@@ -778,7 +807,7 @@ map.fitBounds(
                         <div key={entry.causality} className="flex items-center gap-2 text-sm text-slate-700">
                           <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: causalityColors[index % causalityColors.length] }} />
                           <span>{entry.causality}</span>
-                          <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                          <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                         </div>
                       ))}
                     </div>
@@ -806,7 +835,7 @@ map.fitBounds(
                         <div key={entry.significance} className="flex items-center gap-2 text-sm text-slate-700">
                           <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: significanceColors[index % significanceColors.length] }} />
                           <span>{entry.significance}</span>
-                          <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                          <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                         </div>
                       ))}
                     </div>
@@ -1125,7 +1154,7 @@ map.fitBounds(
                             <div key={entry.symptomName} className="flex items-center gap-2 text-sm text-slate-700">
                               <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: severityColors[index % severityColors.length] }} />
                               <span>{entry.symptomName}</span>
-                              <span className="ml-auto text-slate-500">{entry.percentage}%</span>
+                              <span className="ml-auto text-slate-500">{formatPercent(entry.percentage)}</span>
                             </div>
                           ))}
                         </div>

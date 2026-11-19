@@ -21,7 +21,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -39,7 +39,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     UserRole = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -77,7 +77,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Manufacturers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Country = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: true)
@@ -112,7 +112,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Symptoms",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Name = table.Column<string>(type: "varchar(120)", maxLength: 120, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedName = table.Column<string>(type: "varchar(120)", maxLength: 120, nullable: true)
@@ -137,7 +137,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RoleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    RoleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ClaimType = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ClaimValue = table.Column<string>(type: "longtext", nullable: true)
@@ -159,8 +159,8 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Admins",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -182,7 +182,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ClaimType = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ClaimValue = table.Column<string>(type: "longtext", nullable: true)
@@ -210,7 +210,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ProviderDisplayName = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin")
                 },
                 constraints: table =>
                 {
@@ -228,8 +228,8 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    RoleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    RoleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin")
                 },
                 constraints: table =>
                 {
@@ -253,7 +253,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Name = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -277,12 +277,12 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "RefreshTokens",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Token = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExpiresAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Revoked = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -302,7 +302,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Vaccines",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: true)
@@ -313,7 +313,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ApprovalDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ManufacturerId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ManufacturerId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     TargetPathology = table.Column<string>(type: "varchar(130)", maxLength: 130, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -359,10 +359,10 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Lots",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     LotNumber = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    VaccineId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    VaccineId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -382,7 +382,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Reporters",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     FullName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ReporterRelationship = table.Column<string>(type: "longtext", nullable: false)
@@ -404,7 +404,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Institution = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -435,11 +435,11 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "SectionResponsibles",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ProvinceId = table.Column<int>(type: "int", nullable: false),
                     MunicipalityId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    AdminId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    AdminId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -477,7 +477,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "VaccinatedSubjects",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     FullName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IdentityNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
@@ -524,7 +524,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "VaccinationCenters",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Address = table.Column<string>(type: "varchar(300)", maxLength: 300, nullable: false)
@@ -556,14 +556,14 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AuditLogs",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    ReporterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_bin"),
+                    ReporterId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_bin"),
                     Action = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     EntityName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    EntityId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    EntityId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_bin"),
                     Details = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     OldValues = table.Column<string>(type: "longtext", nullable: true)
@@ -595,19 +595,19 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "MedicalReviewers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ProvinceId = table.Column<int>(type: "int", nullable: false),
                     MunicipalityId = table.Column<int>(type: "int", nullable: false),
                     Institution = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IdentityNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ProfessionalLicense = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Specialty = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    SectionResponsibleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    SectionResponsibleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -645,7 +645,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AefiReport",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ReportDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -654,8 +654,8 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                     isMedicalReport = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IdempotencyKey = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ReporterId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    VaccinatedSubjectId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ReporterId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    VaccinatedSubjectId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -681,7 +681,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "AdverseEvents",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FinishDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     Description = table.Column<string>(type: "varchar(800)", maxLength: 800, nullable: true)
@@ -706,8 +706,8 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RetClassification = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    SymptomId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    SymptomId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -733,14 +733,14 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Alerts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ReadAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IsRead = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    SectionResponsibleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    SectionResponsibleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -766,10 +766,10 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "MedicalReviewAssignments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    SectionResponsibleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    MedicalReviewerId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    SectionResponsibleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    MedicalReviewerId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     AssignedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Status = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -808,12 +808,12 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "ReportDuplicates",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     EnumReportDuplicate = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    AefiReportOriginalId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    AefiReportCopyId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ResolvedByUserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    AefiReportOriginalId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    AefiReportCopyId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    ResolvedByUserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_bin"),
                     ResolvedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
@@ -840,16 +840,16 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "Vaccinations",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     Site = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DoseNumber = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     AdministrationDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    VaccinationCenterId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    LotId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    VaccineId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    VaccinationCenterId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    LotId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    AefiReportId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    VaccineId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_bin"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -886,8 +886,8 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 name: "MedicalReviews",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    MedicalReviewAssignmentId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
+                    MedicalReviewAssignmentId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_bin"),
                     ClinicalSignificance = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Causality = table.Column<string>(type: "longtext", nullable: false)
@@ -913,7 +913,7 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                 columns: new[] { "Id", "CreatedAt", "Name", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Pinar del Rio", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Pinar del Río", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Artemisa", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Mayabeque", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 4, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Isla de la Juventud", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
@@ -921,14 +921,14 @@ namespace Finlay.PharmaVigilance.Infrastructure.Migrations
                     { 6, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Matanzas", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 7, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Cienfuegos", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 8, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Villa Clara", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 9, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Sancti Spiritus", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 10, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Ciego de Avila", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 11, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Camaguey", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { 9, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Sancti Spíritus", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { 10, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Ciego de Ávila", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { 11, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Camagüey", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 12, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Las Tunas", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 13, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Granma", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 14, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Holguin", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { 14, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Holguín", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 15, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Santiago de Cuba", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { 16, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Guantanamo", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
+                    { 16, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Guantánamo", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
                 });
 
             migrationBuilder.InsertData(

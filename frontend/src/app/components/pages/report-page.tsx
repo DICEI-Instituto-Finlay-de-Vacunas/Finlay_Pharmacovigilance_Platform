@@ -904,7 +904,8 @@ export default function ReportPage({ onNavigate }: ReportPageProps) {
         })),
         adverseEvents: formData.adverseEvents.map(event => ({
           startDate: event.eventDate ? new Date(event.eventDate).toISOString() : "",
-          finishDate: event.eventFinishDate ? new Date(event.eventFinishDate).toISOString() : "",
+          // Optional: the API binds this to DateTime?, which rejects "" — send null when empty.
+          finishDate: event.eventFinishDate ? new Date(event.eventFinishDate).toISOString() : null,
           description: event.eventDescription,
           visitedDoctor: event.eventHospitalization.includes("doctor"),
           wentToEmergencyRoom: event.eventHospitalization.includes("emergency"),
@@ -950,8 +951,14 @@ export default function ReportPage({ onNavigate }: ReportPageProps) {
       // Reset form
       setFormData(initialFormData);
     } catch (error: any) {
-      // Manejar error de BadRequest (token inválido)
-      if (error.status === 400 && error.backendData?.success === false) {
+      // A rejected captcha comes back as a bare { success: false }. Validation and business
+      // errors also carry success: false, but with a message or an error list: show those instead.
+      const isCaptchaRejection =
+        error.status === 400 &&
+        error.backendData?.success === false &&
+        !error.backendData?.message &&
+        !error.backendData?.errors;
+      if (isCaptchaRejection) {
         toast.error("Token de verificación inválido", {
           description: "El captcha ha expirado o no es válido. Por favor, intenta nuevamente."
         });

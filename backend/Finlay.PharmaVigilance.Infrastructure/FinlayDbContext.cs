@@ -122,7 +122,7 @@ public class FinlayDbContext : IdentityDbContext<User, Role, Guid>
         base.OnModelCreating(builder);
 
         builder.Entity<Province>().HasData(
-                    new Province { Id = 1, Name = "Pinar del Rio" },
+                    new Province { Id = 1, Name = "Pinar del Río" },
                     new Province { Id = 2, Name = "Artemisa" },
                     new Province { Id = 3, Name = "Mayabeque" },
                     new Province { Id = 4, Name = "Isla de la Juventud" },
@@ -130,14 +130,14 @@ public class FinlayDbContext : IdentityDbContext<User, Role, Guid>
                     new Province { Id = 6, Name = "Matanzas" },
                     new Province { Id = 7, Name = "Cienfuegos" },
                     new Province { Id = 8, Name = "Villa Clara" },
-                    new Province { Id = 9, Name = "Sancti Spiritus" },
-                    new Province { Id = 10, Name = "Ciego de Avila" },
-                    new Province { Id = 11, Name = "Camaguey" },
+                    new Province { Id = 9, Name = "Sancti Spíritus" },
+                    new Province { Id = 10, Name = "Ciego de Ávila" },
+                    new Province { Id = 11, Name = "Camagüey" },
                     new Province { Id = 12, Name = "Las Tunas" },
                     new Province { Id = 13, Name = "Granma" },
-                    new Province { Id = 14, Name = "Holguin" },
+                    new Province { Id = 14, Name = "Holguín" },
                     new Province { Id = 15, Name = "Santiago de Cuba" },
-                    new Province { Id = 16, Name = "Guantanamo" }
+                    new Province { Id = 16, Name = "Guantánamo" }
                 );
 
         builder.Entity<Municipality>().HasData(

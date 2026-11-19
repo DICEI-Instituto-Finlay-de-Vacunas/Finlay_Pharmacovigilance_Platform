@@ -57,8 +57,14 @@ export const LoginPage = ({ onNavigate }: LoginPageProps) => {
         responseData?.type === 'ValidationError' &&
         responseData?.message?.includes('invalid credentials');
 
+      // A rejected captcha comes back as a bare { success: false }.
+      const isCaptchaRejection =
+        err?.response?.status === 400 && responseData?.success === false && !responseData?.message;
+
       const errorMessage = isInvalidCredentials
         ? 'Correo electrónico o contraseña incorrectos.'
+        : isCaptchaRejection
+        ? 'No se pudo verificar el captcha. Espera a que se complete e inténtalo de nuevo.'
         : err instanceof Error
         ? err.message
         : 'Error al iniciar sesión';
